@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>JDM Endless Highway</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Midnight Run</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
 /* --- JDM CITY POP THEME --- */
@@ -19,50 +19,55 @@ body {
     font-family: 'Orbitron', sans-serif;
     text-align: center;
     overflow: hidden;
-    height: 100vh; /* Ensure full height for positioning footer */
+    height: 100vh;
     display: flex;
     flex-direction: column;
     align-items: center;
+    touch-action: none; /* Disables double-tap zoom on mobile */
 }
 
-#menu {
+#menu, #gameOverModal {
     padding: 20px;
-    background: rgba(10, 10, 25, 0.9);
+    background: rgba(10, 10, 25, 0.95);
     backdrop-filter: blur(10px);
     border: 2px solid #00ffff;
-    box-shadow: 0 0 20px rgba(0, 255, 255, 0.3), inset 0 0 20px rgba(255, 0, 255, 0.2);
+    box-shadow: 0 0 30px rgba(0, 255, 255, 0.4), inset 0 0 20px rgba(255, 0, 255, 0.2);
     width: 90%;
     max-width: 450px;
-    margin-top: 20px; /* Reduced top margin */
     border-radius: 16px;
     position: relative;
-    z-index: 10;
-    max-height: 80vh;
+    z-index: 20;
+    max-height: 85vh; /* Ensure menu fits on small screens */
     overflow-y: auto;
 }
 
-/* Custom Scrollbar for menu */
-#menu::-webkit-scrollbar { width: 8px; }
-#menu::-webkit-scrollbar-track { background: #000; }
-#menu::-webkit-scrollbar-thumb { background: #ff00ff; border-radius: 4px; }
+#gameOverModal {
+    display: none;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
 
 h1 {
-    color: #fff;
-    font-style: italic;
-    font-weight: 900;
     font-size: 24px;
     text-transform: uppercase;
     text-shadow: 2px 2px 0px #ff00ff, -2px -2px 0px #00ffff;
     margin-bottom: 15px;
-    letter-spacing: 2px;
 }
 
-label {
-    color: #00ffff;
+h2 {
+    color: #ff0000;
+    font-size: 32px;
     text-transform: uppercase;
-    font-size: 11px;
-    letter-spacing: 1px;
+    text-shadow: 0 0 10px #ff0000;
+    margin: 10px 0;
 }
+
+.score-display { font-size: 18px; margin: 10px 0; }
+.score-val { color: #00ffff; font-weight: bold; font-size: 22px; }
+
+label { color: #00ffff; text-transform: uppercase; font-size: 11px; }
 
 select, button, input {
     padding: 8px;
@@ -73,152 +78,122 @@ select, button, input {
     color: #fff;
     border: 1px solid #ff00ff;
     border-radius: 4px;
-    outline: none;
-    transition: 0.3s;
-}
-
-select:hover, input:hover {
-    border-color: #00ffff;
-    box-shadow: 0 0 10px rgba(0,255,255,0.4);
 }
 
 button {
-    font-weight: bold;
-    text-transform: uppercase;
-    cursor: pointer;
     background: linear-gradient(45deg, #2b0057, #000);
+    width: 100%;
+    padding: 12px;
+    margin-top: 10px;
+    font-size: 14px;
 }
 
-button:hover {
-    background: #ff00ff;
-    color: #000;
-    box-shadow: 0 0 25px #ff00ff;
-    border-color: #fff;
+.share-btn {
+    background: linear-gradient(45deg, #004400, #000);
+    border-color: #00ff00;
 }
 
+/* RESPONSIVE CANVAS */
 canvas {
     display: none;
-    /* Center canvas exactly */
     position: absolute;
-    top: 50%;
-    left: 50%;
+    top: 50%; left: 50%;
     transform: translate(-50%, -50%);
     border-radius: 4px;
-    border: 3px solid #222;
-    box-shadow: 0 0 50px rgba(0, 255, 255, 0.2);
-    max-height: 90vh; /* Prevent canvas overflowing on small screens */
+    border: 2px solid #222;
+    box-shadow: 0 0 30px rgba(0, 255, 255, 0.2);
+    
+    /* Make canvas responsive but keep aspect ratio */
+    height: 90vh;
+    width: auto;
+    max-width: 95vw;
+    aspect-ratio: 420/600;
 }
 
 #hud {
     display: none;
     position: absolute;
-    top: 20px;
-    right: 20px;
-    font-size: 20px;
-    color: #00ffff;
-    font-weight: bold;
+    top: 10px; right: 10px;
+    font-size: 16px; color: #00ffff; font-weight: bold;
     text-shadow: 0 0 10px #00ffff;
     background: rgba(0,0,0,0.5);
-    padding: 10px 15px;
+    padding: 8px 12px;
     border-right: 4px solid #ff00ff;
     border-radius: 4px;
-    z-index: 20;
+    z-index: 15;
+}
+
+/* TOUCH CONTROLS (Invisible layers) */
+.touch-zone {
+    display: none; /* Hidden in menu */
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 50%;
+    z-index: 10;
+    /* Debug color: uncomment to see zones */
+    /* background: rgba(255,0,0,0.1); */
+}
+#leftZone { left: 0; }
+#rightZone { right: 0; }
+
+.touch-hint {
+    position: absolute;
+    bottom: 50px;
+    font-size: 10px;
+    color: rgba(255,255,255,0.5);
+    width: 100%;
+    text-align: center;
+    pointer-events: none;
+    z-index: 5;
+    animation: blink 2s infinite;
+}
+
+@keyframes blink { 50% { opacity: 0.2; } }
+
+.watermark {
+    position: fixed; bottom: 5px; width: 100%; text-align: center; z-index: 100; pointer-events: none;
+}
+.watermark span {
+    font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: #fff;
+    padding: 4px 10px; background: rgba(0, 0, 0, 0.5); border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    animation: neonPulse 3s infinite alternate;
+}
+@keyframes neonPulse {
+    0% { text-shadow: 0 0 5px #00ffff; border-color: #00ffff; color: #e0ffff; }
+    50% { text-shadow: 0 0 15px #ff00ff, 0 0 5px #fff; border-color: #ff00ff; color: #ffe0ff; }
+    100% { text-shadow: 0 0 5px #00ffff; border-color: #00ffff; color: #e0ffff; }
 }
 
 .upload-container {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: rgba(255, 255, 255, 0.05);
-    padding: 5px;
-    border-radius: 6px;
-    margin: 5px 0;
-    border-left: 2px solid #00ffff;
+    display: flex; align-items: center; justify-content: space-between;
+    background: rgba(255, 255, 255, 0.05); padding: 5px;
+    border-radius: 6px; margin: 5px 0; border-left: 2px solid #00ffff;
 }
-
-.upload-container button {
-    font-size: 9px;
-    padding: 4px 8px;
-    border: 1px solid #00ffff;
-    background: transparent;
-}
-.upload-container button:hover {
-    background: #00ffff;
-    color: #000;
-}
-
-.upload-container span img {
-    width: 30px;
-    height: 45px;
-    object-fit: contain;
-    border: 1px solid #444;
-    background: #000;
-}
-
-.reset-btn {
-    background: #330000;
-    border-color: #ff0000;
-    font-size: 10px;
-    margin-top: 10px;
-}
-.reset-btn:hover {
-    background: #ff0000;
-    color: #fff;
-    box-shadow: 0 0 15px #ff0000;
-}
-
-/* --- ANIMATED WATERMARK FOOTER --- */
-.watermark {
-    position: fixed;
-    bottom: 10px;
-    width: 100%;
-    text-align: center;
-    z-index: 100;
-    pointer-events: none; /* Allows clicking through it if needed */
-}
-
-.watermark span {
-    font-size: 12px;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    color: #fff;
-    padding: 5px 15px;
-    background: rgba(0, 0, 0, 0.5);
-    border-radius: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    
-    /* Neon Glow Animation */
-    animation: neonPulse 3s infinite alternate;
-}
-
-@keyframes neonPulse {
-    0% {
-        text-shadow: 0 0 5px #00ffff;
-        border-color: #00ffff;
-        color: #e0ffff;
-    }
-    50% {
-        text-shadow: 0 0 15px #ff00ff, 0 0 5px #fff;
-        border-color: #ff00ff;
-        color: #ffe0ff;
-    }
-    100% {
-        text-shadow: 0 0 5px #00ffff;
-        border-color: #00ffff;
-        color: #e0ffff;
-    }
-}
+.upload-container button { width: auto; font-size: 9px; padding: 4px 8px; margin: 0; }
+.upload-container span img { width: 30px; height: 45px; object-fit: contain; background: #000; }
 </style>
 </head>
 
 <body>
 
-<div class="watermark">
-    <span>Developed by Syameemo</span>
+<div class="watermark"><span>Developed by Syameemo</span></div>
+
+<div id="leftZone" class="touch-zone"></div>
+<div id="rightZone" class="touch-zone"></div>
+<div id="touchHint" class="touch-hint" style="display:none">TAP LEFT / RIGHT TO STEER</div>
+
+<div id="gameOverModal">
+    <h2>💥 Wasted 💥</h2>
+    <div class="score-display">Distance: <span id="finalScore" class="score-val">0</span> M</div>
+    <div class="score-display">Best Record: <span id="finalBest" class="score-val">0</span> M</div>
+    <button class="share-btn" onclick="shareScore()">📋 Copy Score to Share</button>
+    <button onclick="location.reload()">🔄 Restart Engine</button>
 </div>
 
 <div id="menu">
-    <h1>🏁 Lombak Lok!</h1>
+    <h1>🏁 Midnight Run</h1>
 
     <label>Machine:</label>
     <select id="carSelect">
@@ -242,46 +217,31 @@ canvas {
     </select><br><br>
 
     <h3 style="color: #ff00ff; font-size: 14px; border-bottom: 1px solid #ff00ff; display:inline-block; margin-bottom: 10px;">Garage: Custom Skins</h3>
-    <p style="font-size: 10px; color: #aaa; margin-top: -5px;">Images save automatically.</p>
-
+    
     <div class="upload-container">
-        <label>Player:</label>
-        <button onclick="document.getElementById('uploadPlayer').click()">Select PNG</button>
-        <span id="previewPlayer"></span>
-        <input type="file" id="uploadPlayer" accept="image/png" style="display:none">
+        <label>Player:</label> <button onclick="document.getElementById('uploadPlayer').click()">Select PNG</button>
+        <span id="previewPlayer"></span> <input type="file" id="uploadPlayer" accept="image/png" style="display:none">
+    </div>
+    <div class="upload-container">
+        <label>Rivals:</label> <button onclick="document.getElementById('uploadEnemy').click()">Select PNG</button>
+        <span id="previewEnemy"></span> <input type="file" id="uploadEnemy" accept="image/png" style="display:none">
+    </div>
+    <div class="upload-container">
+        <label>Police:</label> <button onclick="document.getElementById('uploadPolice').click()">Select PNG</button>
+        <span id="previewPolice"></span> <input type="file" id="uploadPolice" accept="image/png" style="display:none">
+    </div>
+    <div class="upload-container">
+        <label>Heavy:</label> <button onclick="document.getElementById('uploadTruck').click()">Select PNG</button>
+        <span id="previewTruck"></span> <input type="file" id="uploadTruck" accept="image/png" style="display:none">
+    </div>
+    <div class="upload-container">
+        <label>Bus:</label> <button onclick="document.getElementById('uploadBus').click()">Select PNG</button>
+        <span id="previewBus"></span> <input type="file" id="uploadBus" accept="image/png" style="display:none">
     </div>
 
-    <div class="upload-container">
-        <label>Rivals:</label>
-        <button onclick="document.getElementById('uploadEnemy').click()">Select PNG</button>
-        <span id="previewEnemy"></span>
-        <input type="file" id="uploadEnemy" accept="image/png" style="display:none">
-    </div>
+    <button style="background:#330000;border-color:#ff0000;margin-top:20px;font-size:10px;" onclick="clearSavedSkins()">⚠️ Reset All Skins</button>
 
-    <div class="upload-container">
-        <label>Police:</label>
-        <button onclick="document.getElementById('uploadPolice').click()">Select PNG</button>
-        <span id="previewPolice"></span>
-        <input type="file" id="uploadPolice" accept="image/png" style="display:none">
-    </div>
-
-    <div class="upload-container">
-        <label>Heavy:</label>
-        <button onclick="document.getElementById('uploadTruck').click()">Select PNG</button>
-        <span id="previewTruck"></span>
-        <input type="file" id="uploadTruck" accept="image/png" style="display:none">
-    </div>
-
-    <div class="upload-container">
-        <label>Bus:</label>
-        <button onclick="document.getElementById('uploadBus').click()">Select PNG</button>
-        <span id="previewBus"></span>
-        <input type="file" id="uploadBus" accept="image/png" style="display:none">
-    </div>
-
-    <button class="reset-btn" onclick="clearSavedSkins()">⚠️ Reset All Skins</button><br><br>
-
-    <button onclick="startGame()" style="width: 100%; font-size: 18px; padding: 15px; border: 2px solid #00ffff;">IGNITION START</button>
+    <button onclick="startGame()" style="width: 100%; font-size: 18px; padding: 15px; border: 2px solid #00ffff; margin-top:20px;">IGNITION START</button>
     <p style="font-size: 12px; color: #888;">TOP SCORE: <span id="highScore" style="color:#00ffff">0</span> M</p>
 </div>
 
@@ -299,7 +259,6 @@ let gameOver = false;
 let theme = "day";
 let level = 1;
 
-// Image Object with default paths
 const images = {
     player: { img: new Image(), src: "assets/player/player.png", key: "skin_player" },
     car:    { img: new Image(), src: "assets/traffic/car.png",    key: "skin_car" },
@@ -309,8 +268,6 @@ const images = {
 };
 
 document.getElementById("highScore").innerText = localStorage.getItem("jdmHighScore") || 0;
-
-// --- SAVE SYSTEM LOGIC ---
 
 function loadSkins() {
     initSingleSkin(images.player, "previewPlayer");
@@ -333,17 +290,12 @@ function initSingleSkin(obj, previewId) {
 function handleUpload(input, imageObj, previewId) {
     const file = input.files[0];
     if(!file) return;
-
     const reader = new FileReader();
     reader.onload = function(e) {
         const result = e.target.result;
         imageObj.img.src = result;
         document.getElementById(previewId).innerHTML = `<img src="${result}" alt="new">`;
-        try {
-            localStorage.setItem(imageObj.key, result);
-        } catch (err) {
-            alert("Image too large to save! It will work for this session but won't persist.");
-        }
+        try { localStorage.setItem(imageObj.key, result); } catch (err) {}
     };
     reader.readAsDataURL(file);
 }
@@ -367,13 +319,16 @@ document.getElementById("uploadBus").addEventListener("change",    e => handleUp
 
 loadSkins();
 
-
-// --- GAME LOGIC (UNTOUCHED) ---
-
 function startGame(){
     document.getElementById("menu").style.display="none";
+    document.getElementById("gameOverModal").style.display="none"; 
     canvas.style.display="block";
     document.getElementById("hud").style.display="block";
+    
+    // Enable Touch Zones
+    document.getElementById("leftZone").style.display="block";
+    document.getElementById("rightZone").style.display="block";
+    document.getElementById("touchHint").style.display="block";
 
     const diff = document.getElementById("difficulty").value;
     theme = document.getElementById("theme").value;
@@ -391,11 +346,38 @@ function startGame(){
     requestAnimationFrame(loop);
 }
 
+// KEYBOARD CONTROLS
 document.addEventListener("keydown", e=>{
+    if(gameOver) return;
     if(e.key==="ArrowLeft" && player.lane>0) player.lane--;
     if(e.key==="ArrowRight" && player.lane<2) player.lane++;
     player.x = lanes[player.lane]-player.w/2;
 });
+
+// TOUCH CONTROLS (SMARTPHONE SUPPORT)
+function moveLeft(e) {
+    if(e.cancelable) e.preventDefault();
+    if(gameOver) return;
+    if(player.lane > 0) player.lane--;
+    player.x = lanes[player.lane] - player.w/2;
+}
+function moveRight(e) {
+    if(e.cancelable) e.preventDefault();
+    if(gameOver) return;
+    if(player.lane < 2) player.lane++;
+    player.x = lanes[player.lane] - player.w/2;
+}
+
+const leftZone = document.getElementById("leftZone");
+const rightZone = document.getElementById("rightZone");
+
+// Support both 'touchstart' (mobile) and 'mousedown' (mouse click)
+leftZone.addEventListener("touchstart", moveLeft, {passive: false});
+leftZone.addEventListener("mousedown", moveLeft);
+
+rightZone.addEventListener("touchstart", moveRight, {passive: false});
+rightZone.addEventListener("mousedown", moveRight);
+
 
 function spawnPattern(){
     const patterns = [[0],[1],[2],[0,1],[1,2],[0,2]];
@@ -406,10 +388,8 @@ function spawnPattern(){
         if(typeRand > 0.6) type = "Police";
         if(typeRand > 0.8) type = "Truck";
         if(typeRand > 0.9) type = "Bus";
-
         enemies.push({
-            lane, x:lanes[lane]-carWidth/2, y:-100, w:carWidth, h:80,
-            type: type
+            lane, x:lanes[lane]-carWidth/2, y:-100, w:carWidth, h:80, type: type
         });
     });
 }
@@ -428,7 +408,6 @@ function drawRoad(){
     const stripeHeight = 40;
     for(let i = -stripeHeight; i < canvas.height; i += stripeHeight){
         let isRed = Math.floor((i + distance) / stripeHeight) % 2 === 0;
-        
         if(theme === "day"){
             ctx.fillStyle = isRed ? "#cc0000" : "#eeeeee";
             ctx.fillRect(0, i, 20, stripeHeight); 
@@ -449,10 +428,8 @@ function drawRoad(){
             ctx.fillRect(canvas.width - 17, 0, 2, canvas.height);
         }
     }
-
     ctx.fillStyle = theme === "day" ? "#ffffff" : "#00ffff";
     if(theme === "night") { ctx.shadowBlur = 10; ctx.shadowColor = "#00ffff"; }
-    
     for(let i=0; i<canvas.height; i+=60){
         let yPos = (i + distance) % canvas.height;
         ctx.fillRect(130, yPos, 4, 30);
@@ -466,9 +443,7 @@ function drawCar(imgObj, fallbackColor, x, y, w, h){
     ctx.beginPath();
     ctx.ellipse(x + w/2, y + h - 5, w/2 - 5, 8, 0, 0, Math.PI * 2);
     ctx.fill();
-
     const img = imgObj.img;
-
     if(img.complete && img.naturalWidth!==0){
         let scale = Math.min(w/img.width, h/img.height);
         let imgW = img.width*scale;
@@ -478,10 +453,7 @@ function drawCar(imgObj, fallbackColor, x, y, w, h){
         ctx.drawImage(img, offsetX, offsetY, imgW, imgH);
     } else {
         ctx.fillStyle = fallbackColor;
-        if(theme === "night") {
-            ctx.shadowBlur = 10;
-            ctx.shadowColor = fallbackColor;
-        }
+        if(theme === "night") { ctx.shadowBlur = 10; ctx.shadowColor = fallbackColor; }
         ctx.fillRect(x,y,w,h);
         ctx.shadowBlur = 0;
     }
@@ -501,7 +473,6 @@ function loop(){
         if(e.type==="Police"){ img=images.police; color="#3366ff"; }
         if(e.type==="Truck"){ img=images.truck; color="#8b5a2b"; }
         if(e.type==="Bus"){ img=images.bus; color="#ffd800"; }
-        
         drawCar(img, color, e.x, e.y, e.w, e.h);
 
         if(e.x<player.x+player.w && e.x+e.w>player.x && e.y<player.y+player.h && e.y+e.h>player.y) endGame();
@@ -510,13 +481,8 @@ function loop(){
 
     distance++;
     document.getElementById("distance").innerText = distance;
-
     let newLevel = Math.floor(distance/2000)+1;
-    if(newLevel>level){
-        level=newLevel;
-        speed*=1.08;
-    }
-
+    if(newLevel>level){ level=newLevel; speed*=1.08; }
     requestAnimationFrame(loop);
 }
 
@@ -524,10 +490,30 @@ function endGame(){
     gameOver=true;
     const best = Math.max(distance, localStorage.getItem("jdmHighScore")||0);
     localStorage.setItem("jdmHighScore",best);
-    setTimeout(() => {
-        alert(`💥 WASTED!\nDistance: ${distance}M\n🏆 Record: ${best}M`);
-        location.reload();
-    }, 100);
+    
+    // Disable touch zones
+    document.getElementById("leftZone").style.display="none";
+    document.getElementById("rightZone").style.display="none";
+    document.getElementById("touchHint").style.display="none";
+
+    document.getElementById("finalScore").innerText = distance;
+    document.getElementById("finalBest").innerText = best;
+    document.getElementById("gameOverModal").style.display = "block";
+}
+
+function shareScore() {
+    const score = document.getElementById("finalScore").innerText;
+    const gameUrl = window.location.href;
+    const textToCopy = `🏁 I just drove ${score}M in Midnight Run! \n\nCan you beat my record? \nPlay here: ${gameUrl}`;
+    
+    navigator.clipboard.writeText(textToCopy).then(() => {
+        const btn = document.querySelector(".share-btn");
+        const originalText = btn.innerText;
+        btn.innerText = "✅ Copied!";
+        setTimeout(() => btn.innerText = originalText, 2000);
+    }).catch(err => {
+        alert("Could not copy text. Score: " + score);
+    });
 }
 </script>
 </body>
