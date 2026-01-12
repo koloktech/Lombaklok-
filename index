@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JDM Endless Highway</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+/* --- JDM CITY POP THEME --- */
+body {
+    margin: 0;
+    background-color: #050011;
+    background-image: 
+        linear-gradient(rgba(0, 255, 255, 0.1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 0, 255, 0.1) 1px, transparent 1px);
+    background-size: 40px 40px;
+    background-position: center bottom;
+    color: #fff;
+    font-family: 'Orbitron', sans-serif;
+    text-align: center;
+    overflow: hidden;
+    height: 100vh; /* Ensure full height for positioning footer */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#menu {
+    padding: 20px;
+    background: rgba(10, 10, 25, 0.9);
+    backdrop-filter: blur(10px);
+    border: 2px solid #00ffff;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.3), inset 0 0 20px rgba(255, 0, 255, 0.2);
+    width: 90%;
+    max-width: 450px;
+    margin-top: 20px; /* Reduced top margin */
+    border-radius: 16px;
+    position: relative;
+    z-index: 10;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+/* Custom Scrollbar for menu */
+#menu::-webkit-scrollbar { width: 8px; }
+#menu::-webkit-scrollbar-track { background: #000; }
+#menu::-webkit-scrollbar-thumb { background: #ff00ff; border-radius: 4px; }
+
+h1 {
+    color: #fff;
+    font-style: italic;
+    font-weight: 900;
+    font-size: 24px;
+    text-transform: uppercase;
+    text-shadow: 2px 2px 0px #ff00ff, -2px -2px 0px #00ffff;
+    margin-bottom: 15px;
+    letter-spacing: 2px;
+}
+
+label {
+    color: #00ffff;
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 1px;
+}
+
+select, button, input {
+    padding: 8px;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 12px;
+    margin: 4px;
+    background: rgba(0,0,0,0.6);
+    color: #fff;
+    border: 1px solid #ff00ff;
+    border-radius: 4px;
+    outline: none;
+    transition: 0.3s;
+}
+
+select:hover, input:hover {
+    border-color: #00ffff;
+    box-shadow: 0 0 10px rgba(0,255,255,0.4);
+}
+
+button {
+    font-weight: bold;
+    text-transform: uppercase;
+    cursor: pointer;
+    background: linear-gradient(45deg, #2b0057, #000);
+}
+
+button:hover {
+    background: #ff00ff;
+    color: #000;
+    box-shadow: 0 0 25px #ff00ff;
+    border-color: #fff;
+}
+
+canvas {
+    display: none;
+    /* Center canvas exactly */
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 4px;
+    border: 3px solid #222;
+    box-shadow: 0 0 50px rgba(0, 255, 255, 0.2);
+    max-height: 90vh; /* Prevent canvas overflowing on small screens */
+}
+
+#hud {
+    display: none;
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    font-size: 20px;
+    color: #00ffff;
+    font-weight: bold;
+    text-shadow: 0 0 10px #00ffff;
+    background: rgba(0,0,0,0.5);
+    padding: 10px 15px;
+    border-right: 4px solid #ff00ff;
+    border-radius: 4px;
+    z-index: 20;
+}
+
+.upload-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 5px;
+    border-radius: 6px;
+    margin: 5px 0;
+    border-left: 2px solid #00ffff;
+}
+
+.upload-container button {
+    font-size: 9px;
+    padding: 4px 8px;
+    border: 1px solid #00ffff;
+    background: transparent;
+}
+.upload-container button:hover {
+    background: #00ffff;
+    color: #000;
+}
+
+.upload-container span img {
+    width: 30px;
+    height: 45px;
+    object-fit: contain;
+    border: 1px solid #444;
+    background: #000;
+}
+
+.reset-btn {
+    background: #330000;
+    border-color: #ff0000;
+    font-size: 10px;
+    margin-top: 10px;
+}
+.reset-btn:hover {
+    background: #ff0000;
+    color: #fff;
+    box-shadow: 0 0 15px #ff0000;
+}
+
+/* --- ANIMATED WATERMARK FOOTER --- */
+.watermark {
+    position: fixed;
+    bottom: 10px;
+    width: 100%;
+    text-align: center;
+    z-index: 100;
+    pointer-events: none; /* Allows clicking through it if needed */
+}
+
+.watermark span {
+    font-size: 12px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #fff;
+    padding: 5px 15px;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    
+    /* Neon Glow Animation */
+    animation: neonPulse 3s infinite alternate;
+}
+
+@keyframes neonPulse {
+    0% {
+        text-shadow: 0 0 5px #00ffff;
+        border-color: #00ffff;
+        color: #e0ffff;
+    }
+    50% {
+        text-shadow: 0 0 15px #ff00ff, 0 0 5px #fff;
+        border-color: #ff00ff;
+        color: #ffe0ff;
+    }
+    100% {
+        text-shadow: 0 0 5px #00ffff;
+        border-color: #00ffff;
+        color: #e0ffff;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="watermark">
+    <span>Developed by Syameemo</span>
+</div>
+
+<div id="menu">
+    <h1>🏁 Midnight Run</h1>
+
+    <label>Machine:</label>
+    <select id="carSelect">
+        <option>Supra MK4</option>
+        <option>Skyline R34</option>
+        <option>RX-7 FD</option>
+        <option>Honda NSX</option>
+    </select>
+    
+    <label>Diff:</label>
+    <select id="difficulty">
+        <option value="easy">Easy</option>
+        <option value="normal" selected>Normal</option>
+        <option value="hard">Hard</option>
+    </select>
+    
+    <label>Vibe:</label>
+    <select id="theme">
+        <option value="day">Day</option>
+        <option value="night">Night</option>
+    </select><br><br>
+
+    <h3 style="color: #ff00ff; font-size: 14px; border-bottom: 1px solid #ff00ff; display:inline-block; margin-bottom: 10px;">Garage: Custom Skins</h3>
+    <p style="font-size: 10px; color: #aaa; margin-top: -5px;">Images save automatically.</p>
+
+    <div class="upload-container">
+        <label>Player:</label>
+        <button onclick="document.getElementById('uploadPlayer').click()">Select PNG</button>
+        <span id="previewPlayer"></span>
+        <input type="file" id="uploadPlayer" accept="image/png" style="display:none">
+    </div>
+
+    <div class="upload-container">
+        <label>Rivals:</label>
+        <button onclick="document.getElementById('uploadEnemy').click()">Select PNG</button>
+        <span id="previewEnemy"></span>
+        <input type="file" id="uploadEnemy" accept="image/png" style="display:none">
+    </div>
+
+    <div class="upload-container">
+        <label>Police:</label>
+        <button onclick="document.getElementById('uploadPolice').click()">Select PNG</button>
+        <span id="previewPolice"></span>
+        <input type="file" id="uploadPolice" accept="image/png" style="display:none">
+    </div>
+
+    <div class="upload-container">
+        <label>Heavy:</label>
+        <button onclick="document.getElementById('uploadTruck').click()">Select PNG</button>
+        <span id="previewTruck"></span>
+        <input type="file" id="uploadTruck" accept="image/png" style="display:none">
+    </div>
+
+    <div class="upload-container">
+        <label>Bus:</label>
+        <button onclick="document.getElementById('uploadBus').click()">Select PNG</button>
+        <span id="previewBus"></span>
+        <input type="file" id="uploadBus" accept="image/png" style="display:none">
+    </div>
+
+    <button class="reset-btn" onclick="clearSavedSkins()">⚠️ Reset All Skins</button><br><br>
+
+    <button onclick="startGame()" style="width: 100%; font-size: 18px; padding: 15px; border: 2px solid #00ffff;">IGNITION START</button>
+    <p style="font-size: 12px; color: #888;">TOP SCORE: <span id="highScore" style="color:#00ffff">0</span> M</p>
+</div>
+
+<canvas id="game" width="420" height="600"></canvas>
+<div id="hud">DIST: <span id="distance">0</span> M</div>
+
+<script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+const lanes = [70, 190, 310];
+const carWidth = 50;
+
+let player, enemies, speed, distance, spawnTimer, spawnDelay;
+let gameOver = false;
+let theme = "day";
+let level = 1;
+
+// Image Object with default paths
+const images = {
+    player: { img: new Image(), src: "assets/player/player.png", key: "skin_player" },
+    car:    { img: new Image(), src: "assets/traffic/car.png",    key: "skin_car" },
+    police: { img: new Image(), src: "assets/traffic/police.png", key: "skin_police" },
+    truck:  { img: new Image(), src: "assets/traffic/truck.png",  key: "skin_truck" },
+    bus:    { img: new Image(), src: "assets/traffic/bus.png",    key: "skin_bus" }
+};
+
+document.getElementById("highScore").innerText = localStorage.getItem("jdmHighScore") || 0;
+
+// --- SAVE SYSTEM LOGIC ---
+
+function loadSkins() {
+    initSingleSkin(images.player, "previewPlayer");
+    initSingleSkin(images.car,    "previewEnemy");
+    initSingleSkin(images.police, "previewPolice");
+    initSingleSkin(images.truck,  "previewTruck");
+    initSingleSkin(images.bus,    "previewBus");
+}
+
+function initSingleSkin(obj, previewId) {
+    const savedData = localStorage.getItem(obj.key);
+    if(savedData) {
+        obj.img.src = savedData;
+        document.getElementById(previewId).innerHTML = `<img src="${savedData}" alt="saved">`;
+    } else {
+        obj.img.src = obj.src;
+    }
+}
+
+function handleUpload(input, imageObj, previewId) {
+    const file = input.files[0];
+    if(!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const result = e.target.result;
+        imageObj.img.src = result;
+        document.getElementById(previewId).innerHTML = `<img src="${result}" alt="new">`;
+        try {
+            localStorage.setItem(imageObj.key, result);
+        } catch (err) {
+            alert("Image too large to save! It will work for this session but won't persist.");
+        }
+    };
+    reader.readAsDataURL(file);
+}
+
+function clearSavedSkins() {
+    if(confirm("Delete all custom car skins?")) {
+        localStorage.removeItem("skin_player");
+        localStorage.removeItem("skin_car");
+        localStorage.removeItem("skin_police");
+        localStorage.removeItem("skin_truck");
+        localStorage.removeItem("skin_bus");
+        location.reload();
+    }
+}
+
+document.getElementById("uploadPlayer").addEventListener("change", e => handleUpload(e.target, images.player, "previewPlayer"));
+document.getElementById("uploadEnemy").addEventListener("change",  e => handleUpload(e.target, images.car,    "previewEnemy"));
+document.getElementById("uploadPolice").addEventListener("change", e => handleUpload(e.target, images.police, "previewPolice"));
+document.getElementById("uploadTruck").addEventListener("change",  e => handleUpload(e.target, images.truck,  "previewTruck"));
+document.getElementById("uploadBus").addEventListener("change",    e => handleUpload(e.target, images.bus,    "previewBus"));
+
+loadSkins();
+
+
+// --- GAME LOGIC (UNTOUCHED) ---
+
+function startGame(){
+    document.getElementById("menu").style.display="none";
+    canvas.style.display="block";
+    document.getElementById("hud").style.display="block";
+
+    const diff = document.getElementById("difficulty").value;
+    theme = document.getElementById("theme").value;
+
+    speed = diff==="easy"?3:diff==="hard"?5.5:4;
+    spawnDelay = diff==="easy"?110:diff==="hard"?70:90;
+
+    player = {lane:1, x:lanes[1]-carWidth/2, y:500, w:carWidth, h:80};
+    enemies = [];
+    distance = 0;
+    spawnTimer = 0;
+    gameOver=false;
+    level=1;
+
+    requestAnimationFrame(loop);
+}
+
+document.addEventListener("keydown", e=>{
+    if(e.key==="ArrowLeft" && player.lane>0) player.lane--;
+    if(e.key==="ArrowRight" && player.lane<2) player.lane++;
+    player.x = lanes[player.lane]-player.w/2;
+});
+
+function spawnPattern(){
+    const patterns = [[0],[1],[2],[0,1],[1,2],[0,2]];
+    const chosen = patterns[Math.floor(Math.random()*patterns.length)];
+    chosen.forEach(lane=>{
+        const typeRand = Math.random();
+        let type = "Car";
+        if(typeRand > 0.6) type = "Police";
+        if(typeRand > 0.8) type = "Truck";
+        if(typeRand > 0.9) type = "Bus";
+
+        enemies.push({
+            lane, x:lanes[lane]-carWidth/2, y:-100, w:carWidth, h:80,
+            type: type
+        });
+    });
+}
+
+function drawRoad(){
+    if(theme === "day") {
+        ctx.fillStyle = "#333333"; 
+    } else {
+        let grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+        grad.addColorStop(0, "#0a0a20");
+        grad.addColorStop(1, "#1a1a40");
+        ctx.fillStyle = grad;
+    }
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+
+    const stripeHeight = 40;
+    for(let i = -stripeHeight; i < canvas.height; i += stripeHeight){
+        let isRed = Math.floor((i + distance) / stripeHeight) % 2 === 0;
+        
+        if(theme === "day"){
+            ctx.fillStyle = isRed ? "#cc0000" : "#eeeeee";
+            ctx.fillRect(0, i, 20, stripeHeight); 
+            ctx.fillRect(canvas.width - 20, i, 20, stripeHeight);
+            ctx.fillStyle = "#fff";
+            ctx.fillRect(20, 0, 4, canvas.height);
+            ctx.fillRect(canvas.width - 24, 0, 4, canvas.height);
+        } else {
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = "#ff00ff"; 
+            ctx.fillStyle = isRed ? "#ff00ff" : "#220022";
+            ctx.fillRect(0, i, 10, stripeHeight);
+            ctx.fillRect(canvas.width - 10, i, 10, stripeHeight);
+            ctx.shadowBlur = 0;
+            ctx.shadowColor = "#00ffff";
+            ctx.fillStyle = "#00ffff";
+            ctx.fillRect(15, 0, 2, canvas.height);
+            ctx.fillRect(canvas.width - 17, 0, 2, canvas.height);
+        }
+    }
+
+    ctx.fillStyle = theme === "day" ? "#ffffff" : "#00ffff";
+    if(theme === "night") { ctx.shadowBlur = 10; ctx.shadowColor = "#00ffff"; }
+    
+    for(let i=0; i<canvas.height; i+=60){
+        let yPos = (i + distance) % canvas.height;
+        ctx.fillRect(130, yPos, 4, 30);
+        ctx.fillRect(250, yPos, 4, 30);
+    }
+    ctx.shadowBlur = 0; 
+}
+
+function drawCar(imgObj, fallbackColor, x, y, w, h){
+    ctx.fillStyle = "rgba(0,0,0,0.5)";
+    ctx.beginPath();
+    ctx.ellipse(x + w/2, y + h - 5, w/2 - 5, 8, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    const img = imgObj.img;
+
+    if(img.complete && img.naturalWidth!==0){
+        let scale = Math.min(w/img.width, h/img.height);
+        let imgW = img.width*scale;
+        let imgH = img.height*scale;
+        let offsetX = x+(w-imgW)/2;
+        let offsetY = y+(h-imgH)/2;
+        ctx.drawImage(img, offsetX, offsetY, imgW, imgH);
+    } else {
+        ctx.fillStyle = fallbackColor;
+        if(theme === "night") {
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = fallbackColor;
+        }
+        ctx.fillRect(x,y,w,h);
+        ctx.shadowBlur = 0;
+    }
+}
+
+function loop(){
+    if(gameOver) return;
+    drawRoad();
+    drawCar(images.player,"#ff3333",player.x,player.y,player.w,player.h);
+
+    spawnTimer++;
+    if(spawnTimer>spawnDelay){spawnPattern(); spawnTimer=0;}
+
+    enemies.forEach((e,i)=>{
+        e.y += speed;
+        let img=images.car, color="#999";
+        if(e.type==="Police"){ img=images.police; color="#3366ff"; }
+        if(e.type==="Truck"){ img=images.truck; color="#8b5a2b"; }
+        if(e.type==="Bus"){ img=images.bus; color="#ffd800"; }
+        
+        drawCar(img, color, e.x, e.y, e.w, e.h);
+
+        if(e.x<player.x+player.w && e.x+e.w>player.x && e.y<player.y+player.h && e.y+e.h>player.y) endGame();
+        if(e.y>canvas.height) enemies.splice(i,1);
+    });
+
+    distance++;
+    document.getElementById("distance").innerText = distance;
+
+    let newLevel = Math.floor(distance/2000)+1;
+    if(newLevel>level){
+        level=newLevel;
+        speed*=1.08;
+    }
+
+    requestAnimationFrame(loop);
+}
+
+function endGame(){
+    gameOver=true;
+    const best = Math.max(distance, localStorage.getItem("jdmHighScore")||0);
+    localStorage.setItem("jdmHighScore",best);
+    setTimeout(() => {
+        alert(`💥 WASTED!\nDistance: ${distance}M\n🏆 Record: ${best}M`);
+        location.reload();
+    }, 100);
+}
+</script>
+</body>
+</html>
